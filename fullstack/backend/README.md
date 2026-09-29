@@ -19,8 +19,10 @@ Create `.env` in this directory:
 
 ```env
 PORT=5001
+# DEMO: MongoDB connection used by the backend
 MONGODB_URI=mongodb://127.0.0.1:27017/vastra
 CORS_ORIGINS=http://localhost:3000,http://localhost:3005
+# DEMO: Authentication, payment, and admin configuration
 JWT_SECRET=replace-with-a-long-random-secret
 RAZORPAY_KEY_ID=your-razorpay-key-id
 RAZORPAY_KEY_SECRET=your-razorpay-key-secret
@@ -33,6 +35,7 @@ Start the API:
 npm start
 ```
 
+<!-- DEMO: Backend health check -->
 The default health check is available at `http://localhost:5001/api/health`.
 
 The backend automatically seeds products when it starts against an empty database.
@@ -64,6 +67,7 @@ Authenticated endpoints require `Authorization: Bearer <token>`:
 - `GET /api/orders/:id`
 - `POST /api/orders/checkout`
 
+<!-- DEMO: Admin authorization uses configured MongoDB user IDs -->
 Admin product management requires a logged-in user whose MongoDB ID is listed in the comma-separated `ADMIN_USER_IDS` environment variable. Create the account first, then configure its `_id` from MongoDB; email addresses cannot grant admin access.
 
 - `POST /api/products`
@@ -72,6 +76,8 @@ Admin product management requires a logged-in user whose MongoDB ID is listed in
 - `GET /api/orders/admin/all`
 - `PATCH /api/orders/admin/:id/status`
 
+<!-- DEMO: Razorpay order creation and server-side signature verification -->
 For card or UPI checkout, configure both Razorpay variables. The frontend requests a server-created Razorpay order, and the backend verifies its signature and amount before saving the paid order. Cash on delivery does not require Razorpay configuration.
 
+<!-- DEMO: Server-side pricing and conditional stock reservation -->
 Checkout prices and totals are calculated from MongoDB. Product stock is reserved when an order is created and restored if order creation fails.

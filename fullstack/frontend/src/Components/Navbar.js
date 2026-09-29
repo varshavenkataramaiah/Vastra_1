@@ -1,17 +1,19 @@
 import React from 'react'
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import Footer from './Footer';
 
 function Navbar() {
     const location = useLocation()
     const navigate = useNavigate()
     const searchParams = new URLSearchParams(location.search)
-    const cartCount = useSelector((state) =>
-        state.cart.items.reduce((total, item) => total + item.quantity, 0)
-    )
-    const wishlistCount = useSelector((state) => state.wishlist.items.length)
     const currentUser = useSelector((state) => state.user.currentUser)
+    const cartItems = useSelector((state) => state.cart.items)
+    const wishlistItems = useSelector((state) => state.wishlist.items)
+    const cartError = useSelector((state) => state.cart.error)
+    const cartCount = currentUser ? cartItems.reduce((total, item) => total + item.quantity, 0) : 0
+    const wishlistCount = currentUser ? wishlistItems.length : 0
+    const dispatch = useDispatch()
 
     const navClassName = (path) => `nav-link ${location.pathname === path ? 'active' : ''}`
     const navItems = [
@@ -101,6 +103,14 @@ function Navbar() {
                     </div>
                 </div>
             </nav>
+            {cartError && (
+                <div className="container pt-3">
+                    <div className="alert alert-danger alert-dismissible mb-0" role="alert">
+                        {cartError}
+                        <button type="button" className="btn-close" aria-label="Dismiss" onClick={() => dispatch({ type: 'CLEAR_CART_ERROR' })} />
+                    </div>
+                </div>
+            )}
             <div className="app-content">
                 <Outlet />
             </div>

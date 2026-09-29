@@ -33,6 +33,7 @@ function Cart() {
                           id={`quantity-${item.id}-${item.image}`}
                           type="number"
                           min="1"
+                          max={item.stock}
                           value={item.quantity}
                           onChange={(event) => dispatch({
                             type: 'UPDATE_CART_QUANTITY',

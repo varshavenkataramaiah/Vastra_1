@@ -9,6 +9,8 @@ export const wishlistReducer = (state = initialState, action) => {
 	switch (action.type) {
 		case 'SET_WISHLIST':
 			return { items: action.payload || [] };
+		case 'LOGOUT_USER':
+			return initialState;
 		case 'TOGGLE_WISHLIST': {
 			const alreadySaved = state.items.some((item) => isSameProduct(item, action.payload));
 

@@ -7,6 +7,7 @@ services:
     restart: unless-stopped
     ports:
       - "27017:27017"
+    # DEMO: Persistent MongoDB storage
     volumes:
       - mongo_data:/data/db
     environment:
@@ -21,6 +22,7 @@ services:
       - "5001:5001"
     environment:
       PORT: 5001
+      # DEMO: Backend-to-MongoDB connection and environment-based secrets
       MONGODB_URI: mongodb://mongo:27017/VASTRA
       JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in fullstack/.env}
       RAZORPAY_KEY_ID: ${RAZORPAY_KEY_ID:-}

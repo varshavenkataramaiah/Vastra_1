@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import Navbar from '../Components/Navbar';
 import { API_BASE_URL } from '../api';
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/;
+const localMobileNumber = (mobile = '') => String(mobile).replace(/^\+91/, '').replace(/\D/g, '').slice(-10);
 
 const normalizeOrder = (order) => ({
   id: order._id || order.id,
@@ -29,7 +32,7 @@ function Checkout() {
   const [shippingDetails, setShippingDetails] = useState({
     name: currentUser?.name || '',
     email: currentUser?.email || '',
-    phone: currentUser?.mobile || '',
+    phone: localMobileNumber(currentUser?.mobile),
     address: '',
     city: '',
     postcode: '',
@@ -52,7 +55,7 @@ function Checkout() {
       ...prev,
       name: currentUser.name || prev.name,
       email: currentUser.email || prev.email,
-      phone: currentUser.mobile || prev.phone,
+      phone: localMobileNumber(currentUser.mobile) || prev.phone,
     }));
   }, [currentUser]);
 
@@ -83,7 +86,7 @@ function Checkout() {
           shippingAddress: {
             fullName: shippingDetails.name,
             email: shippingDetails.email,
-            mobile: shippingDetails.phone,
+            mobile: `+91${shippingDetails.phone}`,
             address: shippingDetails.address,
             city: shippingDetails.city,
             state: '',
@@ -109,6 +112,14 @@ function Checkout() {
   const handleSubmit = async (event) => {
     event.preventDefault();
     setPaymentError('');
+    if (!EMAIL_PATTERN.test(shippingDetails.email.trim())) {
+      setPaymentError('Enter a valid email address with an extension.');
+      return;
+    }
+    if (!/^\d{10}$/.test(shippingDetails.phone.trim())) {
+      setPaymentError('Enter a 10-digit mobile number.');
+      return;
+    }
 
     if (selectedPayment === 'cash') {
       await placeOrder();
@@ -185,6 +196,10 @@ function Checkout() {
     }
   };
 
+  if (!currentUser) {
+    return <Navigate to="/login" replace state={{ from: '/checkout' }} />;
+  }
+
   return (
     <>
       <Navbar />
@@ -216,11 +231,14 @@ function Checkout() {
                       </div>
                       <div className="col-md-6">
                         <label htmlFor="checkout-email">Email address</label>
-                        <input id="checkout-email" name="email" type="email" value={shippingDetails.email} onChange={(event) => setShippingDetails({ ...shippingDetails, email: event.target.value })} required />
+                        <input id="checkout-email" name="email" type="email" pattern="[^@ ]+@[^@ ]+\.[A-Za-z]{2,}" value={shippingDetails.email} onChange={(event) => setShippingDetails({ ...shippingDetails, email: event.target.value })} required />
                       </div>
                       <div className="col-12">
                         <label htmlFor="checkout-phone">Phone number</label>
-                        <input id="checkout-phone" name="phone" type="tel" value={shippingDetails.phone} onChange={(event) => setShippingDetails({ ...shippingDetails, phone: event.target.value })} required />
+                        <div className="input-group">
+                          <span className="input-group-text">+91</span>
+                          <input id="checkout-phone" name="phone" type="tel" inputMode="numeric" pattern="[0-9]{10}" maxLength="10" value={shippingDetails.phone} onChange={(event) => setShippingDetails({ ...shippingDetails, phone: event.target.value.replace(/\D/g, '').slice(0, 10) })} required />
+                        </div>
                       </div>
                     </div>
                   </section>

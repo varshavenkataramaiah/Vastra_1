@@ -9,6 +9,7 @@ const authMiddleware = (req, res, next) => {
   }
 
   try {
+    // DEMO: Verify the JWT and attach the user to the request
     const decoded = verifyToken(token);
     req.user = decoded;
     next();

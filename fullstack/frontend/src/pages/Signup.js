@@ -4,6 +4,8 @@ import { useDispatch } from 'react-redux';
 import Navbar from '../Components/Navbar';
 import { API_BASE_URL } from '../api';
 
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/;
+
 function Signup() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -21,6 +23,15 @@ function Signup() {
     const email = form.email.trim().toLowerCase();
     const mobile = form.mobile.trim();
     setError('');
+
+    if (registrationMethod === 'email' && !EMAIL_PATTERN.test(email)) {
+      setError('Enter a valid email address with an extension.');
+      return;
+    }
+    if (registrationMethod === 'mobile' && !/^\d{10}$/.test(mobile)) {
+      setError('Enter a 10-digit mobile number.');
+      return;
+    }
 
     if (registrationMethod === 'mobile' && !otpSent) {
       const otp = String(Math.floor(100000 + Math.random() * 900000));
@@ -47,7 +58,7 @@ function Signup() {
       const payload = {
         name: form.name.trim(),
         email: registrationMethod === 'email' ? email : '',
-        mobile: registrationMethod === 'mobile' ? mobile : '',
+        mobile: registrationMethod === 'mobile' ? `+91${mobile}` : '',
         password: registrationMethod === 'email' ? form.password : '',
       };
 
@@ -87,12 +98,15 @@ function Signup() {
           {registrationMethod === 'email' ? (
             <>
               <label htmlFor="signup-email">Email address</label>
-              <input id="signup-email" name="email" type="email" value={form.email} onChange={updateField} required />
+              <input id="signup-email" name="email" type="email" pattern="[^@ ]+@[^@ ]+\.[A-Za-z]{2,}" value={form.email} onChange={updateField} required />
             </>
           ) : (
             <>
               <label htmlFor="signup-mobile">Mobile number</label>
-              <input id="signup-mobile" name="mobile" type="tel" inputMode="tel" value={form.mobile} onChange={(event) => { updateField(event); setOtpSent(false); setVerificationCode(''); }} required />
+              <div className="input-group">
+                <span className="input-group-text">+91</span>
+                <input id="signup-mobile" name="mobile" type="tel" inputMode="numeric" pattern="[0-9]{10}" maxLength="10" value={form.mobile} onChange={(event) => { setForm({ ...form, mobile: event.target.value.replace(/\D/g, '').slice(0, 10) }); setOtpSent(false); setVerificationCode(''); }} required />
+              </div>
             </>
           )}
           {registrationMethod === 'mobile' && otpSent && (

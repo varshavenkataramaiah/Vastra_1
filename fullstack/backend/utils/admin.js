@@ -1,3 +1,4 @@
+// DEMO: Read approved administrator IDs from the environment
 const isAdminUserId = (userId) => {
   const adminUserIds = String(process.env.ADMIN_USER_IDS || '')
     .split(',')

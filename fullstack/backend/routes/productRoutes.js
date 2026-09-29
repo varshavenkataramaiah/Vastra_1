@@ -5,6 +5,7 @@ const adminMiddleware = require('../middleware/adminMiddleware');
 
 const router = express.Router();
 
+// DEMO: Fetch products, search, category filtering, and database sorting
 router.get('/', async (req, res) => {
   try {
     const filters = {};
@@ -30,6 +31,7 @@ router.get('/', async (req, res) => {
   }
 });
 
+// DEMO: Fetch one product by its MongoDB ID
 router.get('/:id', async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);

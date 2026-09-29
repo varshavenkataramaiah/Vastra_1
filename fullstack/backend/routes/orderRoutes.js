@@ -8,6 +8,8 @@ const crypto = require('crypto');
 const Razorpay = require('razorpay');
 
 const router = express.Router();
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/;
+const MOBILE_PATTERN = /^\+91\d{10}$/;
 
 const getRazorpayClient = () => {
   if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
@@ -19,6 +21,7 @@ const getRazorpayClient = () => {
   });
 };
 
+// DEMO: Return order history for the authenticated customer
 router.get('/', authMiddleware, async (req, res) => {
   try {
     await Order.updateMany(
@@ -267,12 +270,27 @@ router.post('/payment-order', authMiddleware, async (req, res) => {
       return res.status(400).json({ message: 'A valid cart is required to initialize payment' });
     }
 
+    await Product.updateMany(
+      { stock: { $exists: false } },
+      { $set: { stock: 10 } }
+    );
+
+    // DEMO: Load product prices from MongoDB instead of trusting browser totals
     const products = await Product.find({
       _id: { $in: requestedItems.map((item) => item.productId) },
     });
     const productsById = new Map(products.map((product) => [String(product._id), product]));
     if (requestedItems.some((item) => !productsById.has(item.productId)) || products.some((product) => !product.inStock)) {
       return res.status(400).json({ message: 'Cart contains an unavailable product' });
+    }
+    const requestedQuantities = new Map();
+    requestedItems.forEach(({ productId, quantity }) => {
+      requestedQuantities.set(productId, (requestedQuantities.get(productId) || 0) + quantity);
+    });
+    for (const [productId, quantity] of requestedQuantities) {
+      if (quantity > productsById.get(productId).stock) {
+        return res.status(409).json({ message: `Only ${productsById.get(productId).stock} available for one or more products` });
+      }
     }
     const amount = requestedItems.reduce((sum, item) => sum + productsById.get(item.productId).price * item.quantity, 0);
 
@@ -335,6 +353,23 @@ router.post('/checkout', authMiddleware, async (req, res) => {
       return res.status(400).json({ message: 'Cart contains an unavailable product' });
     }
 
+    const requestedQuantities = new Map();
+    requestedItems.forEach(({ productId, quantity }) => {
+      requestedQuantities.set(productId, (requestedQuantities.get(productId) || 0) + quantity);
+    });
+    for (const [productId, quantity] of requestedQuantities) {
+      if (quantity > productsById.get(productId).stock) {
+        return res.status(409).json({ message: `Only ${productsById.get(productId).stock} available for one or more products` });
+      }
+    }
+
+    if (!EMAIL_PATTERN.test(String(shippingAddress.email || '').trim())) {
+      return res.status(400).json({ message: 'Enter a valid email address with an extension' });
+    }
+    if (!MOBILE_PATTERN.test(String(shippingAddress.mobile || '').trim())) {
+      return res.status(400).json({ message: 'Mobile number must include +91 and 10 digits' });
+    }
+
     const normalizedItems = requestedItems.map((item) => {
       const product = productsById.get(item.productId);
       return {
@@ -345,6 +380,7 @@ router.post('/checkout', authMiddleware, async (req, res) => {
         quantity: item.quantity,
       };
     });
+    // DEMO: Calculate the order total from database prices
     const calculatedTotal = normalizedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
     if (paymentMethod === 'razorpay') {
@@ -356,6 +392,7 @@ router.post('/checkout', authMiddleware, async (req, res) => {
         return res.status(400).json({ message: 'Razorpay payment details are required' });
       }
 
+      // DEMO: Verify the Razorpay payment signature
       const expectedSignature = crypto
         .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
         .update(`${razorpayOrderId}|${razorpayPaymentId}`)
@@ -376,6 +413,7 @@ router.post('/checkout', authMiddleware, async (req, res) => {
 
     const reservedItems = [];
     for (const item of requestedItems) {
+      // DEMO: Reserve stock only when enough inventory is available
       const reservedProduct = await Product.findOneAndUpdate(
         {
           _id: item.productId,

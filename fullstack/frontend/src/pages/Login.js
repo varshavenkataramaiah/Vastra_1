@@ -4,6 +4,8 @@ import { useDispatch } from 'react-redux';
 import Navbar from '../Components/Navbar';
 import { API_BASE_URL } from '../api';
 
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/;
+
 function Login() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -21,8 +23,17 @@ function Login() {
     event.preventDefault();
     setError('');
 
+    if (isMobileLogin && !/^\d{10}$/.test(identifier.trim())) {
+      setError('Enter a 10-digit mobile number.');
+      return;
+    }
+    if (!isMobileLogin && !EMAIL_PATTERN.test(identifier.trim())) {
+      setError('Enter a valid email address with an extension.');
+      return;
+    }
+
     const payload = isMobileLogin
-      ? { mobile: identifier.trim(), password }
+      ? { mobile: `+91${identifier.trim()}`, password }
       : { email: identifier.trim().toLowerCase(), password };
 
     if (isMobileLogin && !otpSent) {
@@ -70,7 +81,14 @@ function Login() {
             <button type="button" className={loginMethod === 'mobile' ? 'active' : ''} onClick={() => { setLoginMethod('mobile'); setIdentifier(''); setPassword(''); setOtpSent(false); setVerificationCode(''); setError(''); }}>Mobile number</button>
           </div>
           <label htmlFor="login-identifier">{loginMethod === 'mobile' ? 'Mobile number' : 'Email address'}</label>
-          <input id="login-identifier" type={loginMethod === 'mobile' ? 'tel' : 'email'} inputMode={loginMethod === 'mobile' ? 'tel' : 'email'} value={identifier} onChange={(event) => { setIdentifier(event.target.value); setOtpSent(false); setVerificationCode(''); }} required />
+          {isMobileLogin ? (
+            <div className="input-group">
+              <span className="input-group-text">+91</span>
+              <input id="login-identifier" type="tel" inputMode="numeric" pattern="[0-9]{10}" maxLength="10" value={identifier} onChange={(event) => { setIdentifier(event.target.value.replace(/\D/g, '').slice(0, 10)); setOtpSent(false); setVerificationCode(''); }} required />
+            </div>
+          ) : (
+            <input id="login-identifier" type="email" pattern="[^@ ]+@[^@ ]+\.[A-Za-z]{2,}" value={identifier} onChange={(event) => { setIdentifier(event.target.value); setOtpSent(false); setVerificationCode(''); }} required />
+          )}
           {otpSent ? (
             <>
               <p className="auth-otp-demo">Demo OTP: <strong>{generatedOtp}</strong></p>

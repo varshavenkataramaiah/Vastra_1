@@ -20,6 +20,7 @@ app.use(cors({
 }));
 app.use(express.json());
 
+// DEMO: Database initialization and seed data
 const initializeDatabase = async () => {
   await connectDB();
   const productCount = await Product.countDocuments();
@@ -29,6 +30,7 @@ const initializeDatabase = async () => {
   }
 };
 
+// DEMO: Backend health check
 app.get('/api/health', (req, res) => {
   res.status(200).json({
     status: 'ok',
@@ -37,6 +39,7 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// DEMO: REST route mounting
 app.use('/api/users', userRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
