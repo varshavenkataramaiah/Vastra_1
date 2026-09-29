@@ -1569,7 +1569,7 @@
   color: var(--muted-ink);
   font-size: 0.72rem;
   letter-spacing: 0.07em;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .brand-card {
@@ -1643,38 +1643,30 @@
   color: var(--muted-ink);
   font-size: 0.72rem;
   letter-spacing: 0.07em;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
-.brand-content button {
-  border: 0;
-  border-radius: 999px;
-  background: var(--ink);
-  color: #fff;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  padding: 0.7rem 0.95rem;
-  transition: background 180ms ease, transform 180ms ease;
-}
-
-.brand-content button:hover,
-.brand-content button:focus-visible {
-  background: var(--accent-dark);
-  transform: translateY(-1px);
-}
-
-.brand-content button {
+.brand-shop-link {
+  display: inline-block;
   border: 0;
   border-radius: 999px;
   background: var(--accent);
   color: #fff;
-  font-size: 0.76rem;
+  font-size: 0.72rem;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0;
+  text-transform: uppercase;
   padding: 0.55rem 0.9rem;
   box-shadow: 0 10px 20px rgb(228 76 89 / 18%);
+  text-decoration: none;
+  transition: background 180ms ease, transform 180ms ease;
+}
+
+.brand-shop-link:hover,
+.brand-shop-link:focus-visible {
+  background: var(--accent-dark);
+  color: #fff;
+  transform: translateY(-1px);
 }
 
 .row > .col-md-3.mt-2 {

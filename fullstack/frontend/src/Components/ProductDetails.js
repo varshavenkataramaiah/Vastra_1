@@ -1,11 +1,14 @@
 import React, { useState } from 'react'
 import { useDispatch } from 'react-redux'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { useSelector } from 'react-redux'
 import './Details.css'
 
 let ProductDetails = ({ product }) => {
     const dispatch = useDispatch()
     const navigate = useNavigate()
+    const location = useLocation()
+    const currentUser = useSelector((state) => state.user.currentUser)
     const galleryImages = product.gallery || [
         product.image,
         product.image.replace('w=700', 'w=900&h=900'),
@@ -15,12 +18,16 @@ let ProductDetails = ({ product }) => {
     const [selectedImage, setSelectedImage] = useState(product.image)
 
     const addToCart = () => {
+        if (!currentUser) {
+            navigate('/login', { state: { from: `${location.pathname}${location.search}` } })
+            return false
+        }
         dispatch({ type: 'ADD_TO_CART', payload: product })
+        return true
     }
 
     const buyNow = () => {
-        addToCart()
-        navigate('/checkout')
+        if (addToCart()) navigate('/checkout')
     }
 
   return (

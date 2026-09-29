@@ -1,5 +1,5 @@
 import React from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import setCurrentProduct from '../actions/setCurrentProduct'
 
@@ -8,6 +8,9 @@ import setCurrentProduct from '../actions/setCurrentProduct'
 
 function IconList({product}) {
   let dispatch = useDispatch()
+    const currentUser = useSelector((state) => state.user.currentUser)
+    const navigate = useNavigate()
+    const location = useLocation()
     let isWishlisted = useSelector((state) => state.wishlist.items.some(
         (item) => item.id === product.id && item.image === product.image
     ))
@@ -16,10 +19,18 @@ function IconList({product}) {
   } 
     let handleWishlist = (event) => {
         event.preventDefault()
+        if (!currentUser) {
+            navigate('/login', { state: { from: `${location.pathname}${location.search}` } })
+            return
+        }
         dispatch({ type: 'TOGGLE_WISHLIST', payload: product })
     }
     let handleCart = (event) => {
         event.preventDefault()
+        if (!currentUser) {
+            navigate('/login', { state: { from: `${location.pathname}${location.search}` } })
+            return
+        }
         dispatch({ type: 'ADD_TO_CART', payload: product })
     }
   return (

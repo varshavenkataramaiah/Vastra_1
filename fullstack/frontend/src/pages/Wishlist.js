@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import Navbar from '../Components/Navbar';
 import ProductItem from '../Components/ProductItem';
@@ -8,11 +8,19 @@ import { API_BASE_URL } from '../api';
 function Wishlist() {
   const dispatch = useDispatch();
   const items = useSelector((state) => state.wishlist.items);
+  const currentUser = useSelector((state) => state.user.currentUser);
+  const navigate = useNavigate();
+  const location = useLocation();
   const [addingProductId, setAddingProductId] = useState('');
   const [unavailableProductIds, setUnavailableProductIds] = useState([]);
   const [cartError, setCartError] = useState('');
 
   const addToCart = async (product) => {
+    if (!currentUser) {
+      navigate('/login', { state: { from: `${location.pathname}${location.search}` } });
+      return;
+    }
+
     setCartError('');
     setAddingProductId(product.id);
 
