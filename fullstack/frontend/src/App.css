@@ -1386,6 +1386,12 @@
 .order-status-cancelled { background: rgba(239, 71, 111, .1); color: #c42f55; }
 .order-status-placed, .order-status-processing, .order-status-shipped { background: rgba(246, 180, 71, .14); color: #9a6500; }
 .order-note { margin: 0 1.5rem .9rem; color: var(--muted-ink); font-size: .78rem; }
+.return-request-form { display: grid; gap: .55rem; max-width: 34rem; margin: 0 1.5rem 1rem; }
+.return-request-form label { color: var(--ink); font-size: .82rem; font-weight: 700; }
+.return-request-form textarea { width: 100%; min-height: 5.5rem; padding: .7rem; border: 1px solid var(--line); border-radius: .35rem; resize: vertical; }
+.return-request-actions { display: flex; align-items: center; gap: .65rem; }
+.order-return-details { margin: 0 1.5rem 1rem; font-size: .8rem; }
+.order-return-details p { margin: .4rem 0 0; color: var(--ink); }
 
 .returns-page { padding-top: 2rem; padding-bottom: 3rem; }
 .returns-guide { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin: 1.5rem 0 2rem; }
@@ -1403,6 +1409,7 @@
 .return-step.complete { color: #1d7d43; }
 .return-step.complete span { border-color: #1d7d43; background: #1d7d43; color: #fff; }
 .return-card-footer { display: flex; justify-content: space-between; gap: 1rem; padding: .95rem 1.4rem; color: var(--muted-ink); font-size: .78rem; }
+.return-reason { margin: 0; padding: .85rem 1.4rem; color: var(--muted-ink); font-size: .82rem; }
 .return-card-footer a { color: var(--ink); font-weight: 700; text-decoration: none; }
 .returns-empty-mark { display: block; margin-bottom: .5rem; color: #ef476f; font-size: 2rem; }
 

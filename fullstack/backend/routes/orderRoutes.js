@@ -90,6 +90,14 @@ router.patch('/:id/cancel', authMiddleware, async (req, res) => {
 
 router.patch('/:id/return', authMiddleware, async (req, res) => {
   try {
+    const returnReason = String(req.body?.reason || '').trim();
+    if (!returnReason) {
+      return res.status(400).json({ message: 'A reason is required to request a return' });
+    }
+    if (returnReason.length > 1000) {
+      return res.status(400).json({ message: 'Return reason must be 1000 characters or fewer' });
+    }
+
     if (!mongoose.isValidObjectId(req.params.id)) {
       return res.status(400).json({ message: 'Invalid order id' });
     }
@@ -101,6 +109,7 @@ router.patch('/:id/return', authMiddleware, async (req, res) => {
     }
 
     order.returnRequested = true;
+    order.returnReason = returnReason;
     order.returnStatus = 'REQUESTED';
     order.refundStatus = order.paymentMethod === 'cash' ? 'PENDING' : 'NOT_APPLICABLE';
     await order.save();

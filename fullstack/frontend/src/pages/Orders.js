@@ -11,6 +11,7 @@ const normalizeOrder = (order) => ({
   status: order.status || 'PLACED',
   returnRequested: Boolean(order.returnRequested),
   returnStatus: order.returnStatus || (order.returnRequested ? 'REQUESTED' : 'NONE'),
+  returnReason: order.returnReason || '',
   refundStatus: order.refundStatus || 'NOT_APPLICABLE',
   items: (order.items || []).map((item, index) => ({
     id: item.productId || item.id || `${order._id || order.id}-${index}`,
@@ -28,6 +29,8 @@ function Orders() {
   const [actionError, setActionError] = React.useState('');
   const [actionId, setActionId] = React.useState('');
   const [activeFilter, setActiveFilter] = React.useState('ALL');
+  const [returningOrderId, setReturningOrderId] = React.useState('');
+  const [returnReason, setReturnReason] = React.useState('');
 
   useEffect(() => {
     if (!currentUser) return;
@@ -68,18 +71,26 @@ function Orders() {
   const returnCount = orders.filter((order) => order.returnStatus !== 'NONE').length;
   const activeCount = orders.filter((order) => ['PLACED', 'PROCESSING', 'SHIPPED'].includes(order.status)).length;
 
-  const updateOrder = async (orderId, action) => {
+  const updateOrder = async (orderId, action, payload = {}) => {
     const token = localStorage.getItem('vastraToken');
     setActionError('');
     setActionId(orderId);
     try {
       const response = await fetch(`${API_BASE_URL}/orders/${orderId}/${action}`, {
         method: 'PATCH',
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || 'Unable to update order');
       dispatch({ type: 'SET_ORDERS', payload: orders.map((item) => item.id === orderId ? normalizeOrder(data.order) : item) });
+      if (action === 'return') {
+        setReturningOrderId('');
+        setReturnReason('');
+      }
     } catch (error) {
       setActionError(error.message);
     } finally {
@@ -140,8 +151,46 @@ function Orders() {
                   ))}
                 </div>
                 {(order.status === 'PLACED' || order.status === 'PROCESSING') && <button className="btn btn-outline-danger btn-sm" type="button" disabled={actionId === order.id} onClick={() => updateOrder(order.id, 'cancel')}>{actionId === order.id ? 'Updating...' : 'Cancel order'}</button>}
-                {order.status === 'DELIVERED' && order.returnStatus === 'NONE' && <button className="btn btn-outline-dark btn-sm" type="button" disabled={actionId === order.id} onClick={() => updateOrder(order.id, 'return')}>{actionId === order.id ? 'Updating...' : 'Request return'}</button>}
-                {order.status === 'DELIVERED' && order.returnStatus !== 'NONE' && <span className="text-muted">Return: {order.returnStatus.toLowerCase()} {order.refundStatus === 'INITIATED' ? '· Refund initiated' : order.refundStatus === 'PENDING' ? '· Refund pending' : ''}</span>}
+                {order.status === 'DELIVERED' && order.returnStatus === 'NONE' && (
+                  returningOrderId === order.id ? (
+                    <form className="return-request-form" onSubmit={(event) => {
+                      event.preventDefault();
+                      if (!returnReason.trim()) {
+                        setActionError('Please provide a reason for your return.');
+                        return;
+                      }
+                      updateOrder(order.id, 'return', { reason: returnReason.trim() });
+                    }}>
+                      <label htmlFor={`return-reason-${order.id}`}>Reason for return</label>
+                      <textarea
+                        id={`return-reason-${order.id}`}
+                        value={returnReason}
+                        onChange={(event) => setReturnReason(event.target.value)}
+                        maxLength="1000"
+                        rows="3"
+                        required
+                      />
+                      <div className="return-request-actions">
+                        <button className="btn btn-dark btn-sm" type="submit" disabled={actionId === order.id}>
+                          {actionId === order.id ? 'Submitting...' : 'Submit return request'}
+                        </button>
+                        <button className="btn btn-link btn-sm" type="button" onClick={() => { setReturningOrderId(''); setReturnReason(''); }}>
+                          Cancel
+                        </button>
+                      </div>
+                    </form>
+                  ) : (
+                    <button className="btn btn-outline-dark btn-sm" type="button" disabled={actionId === order.id} onClick={() => { setActionError(''); setReturningOrderId(order.id); setReturnReason(''); }}>
+                      Request return
+                    </button>
+                  )
+                )}
+                {order.status === 'DELIVERED' && order.returnStatus !== 'NONE' && (
+                  <div className="order-return-details">
+                    <span className="text-muted">Return: {order.returnStatus.toLowerCase()} {order.refundStatus === 'INITIATED' ? '· Refund initiated' : order.refundStatus === 'PENDING' ? '· Refund pending' : ''}</span>
+                    {order.returnReason && <p><strong>Reason:</strong> {order.returnReason}</p>}
+                  </div>
+                )}
                 {order.status === 'DELIVERED' && order.returnStatus === 'NONE' && <p className="order-note">Eligible for return request</p>}
               </article>
             ))}

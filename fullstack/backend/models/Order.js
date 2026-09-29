@@ -18,6 +18,7 @@ const orderSchema = new mongoose.Schema(
     total: { type: Number, required: true, min: 0 },
     status: { type: String, default: 'PLACED' },
     returnRequested: { type: Boolean, default: false },
+    returnReason: { type: String, trim: true, maxlength: 1000, default: '' },
     returnStatus: {
       type: String,
       enum: ['NONE', 'REQUESTED', 'ACCEPTED', 'RECEIVED', 'REJECTED'],

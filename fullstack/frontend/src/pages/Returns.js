@@ -52,6 +52,7 @@ function Returns() {
                     {returnSteps.map((step, index) => <div className={`return-step ${index <= stepIndex ? 'complete' : ''}`} key={step}><span>{index < stepIndex ? '✓' : index + 1}</span><strong>{step.charAt(0) + step.slice(1).toLowerCase()}</strong></div>)}
                     <div className={`return-step ${isRefunded ? 'complete' : ''}`}><span>{isRefunded ? '✓' : 4}</span><strong>{isRefunded ? 'Refund initiated' : 'Refund'}</strong></div>
                   </div>
+                  {order.returnReason && <p className="return-reason"><strong>Your reason:</strong> {order.returnReason}</p>}
                   <div className="return-card-footer">
                     <span>{order.returnStatus === 'REJECTED' ? 'Return request rejected' : order.returnStatus === 'RECEIVED' ? (isRefunded ? 'Refund initiated to your original payment method' : 'Received · refund pending') : `Return ${order.returnStatus.toLowerCase()}`}</span>
                     <Link to={`/orders/${order.id}`}>View order →</Link>
