@@ -3,8 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import Navbar from '../Components/Navbar';
 import { API_BASE_URL } from '../api';
-
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/;
+import getEmailValidationError from '../utils/emailValidation';
 
 function Login() {
   const dispatch = useDispatch();
@@ -27,8 +26,8 @@ function Login() {
       setError('Enter a 10-digit mobile number.');
       return;
     }
-    if (!isMobileLogin && !EMAIL_PATTERN.test(identifier.trim())) {
-      setError('Enter a valid email address with an extension.');
+    if (!isMobileLogin && getEmailValidationError(identifier)) {
+      setError(getEmailValidationError(identifier));
       return;
     }
 

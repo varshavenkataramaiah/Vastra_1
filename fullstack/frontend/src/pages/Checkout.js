@@ -3,8 +3,8 @@ import { Link, Navigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import Navbar from '../Components/Navbar';
 import { API_BASE_URL } from '../api';
+import getEmailValidationError from '../utils/emailValidation';
 
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/;
 const localMobileNumber = (mobile = '') => String(mobile).replace(/^\+91/, '').replace(/\D/g, '').slice(-10);
 
 const normalizeOrder = (order) => ({
@@ -112,8 +112,9 @@ function Checkout() {
   const handleSubmit = async (event) => {
     event.preventDefault();
     setPaymentError('');
-    if (!EMAIL_PATTERN.test(shippingDetails.email.trim())) {
-      setPaymentError('Enter a valid email address with an extension.');
+    const emailValidationError = getEmailValidationError(shippingDetails.email);
+    if (emailValidationError) {
+      setPaymentError(emailValidationError);
       return;
     }
     if (!/^\d{10}$/.test(shippingDetails.phone.trim())) {

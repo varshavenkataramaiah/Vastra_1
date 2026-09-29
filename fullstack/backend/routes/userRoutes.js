@@ -6,9 +6,9 @@ const authMiddleware = require('../middleware/authMiddleware');
 const { isAdminUserId } = require('../utils/admin');
 const adminMiddleware = require('../middleware/adminMiddleware');
 const Product = require('../models/Product');
+const { getEmailValidationError } = require('../utils/emailValidation');
 
 const router = express.Router();
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/;
 const MOBILE_PATTERN = /^\+91\d{10}$/;
 
 router.get('/admin/all', adminMiddleware, async (req, res) => {
@@ -150,8 +150,9 @@ router.post('/register', async (req, res) => {
     if (!name || (!email && !mobile)) {
       return res.status(400).json({ message: 'Name and email or mobile are required' });
     }
-    if (email && !EMAIL_PATTERN.test(email)) {
-      return res.status(400).json({ message: 'Enter a valid email address with an extension' });
+    const emailValidationError = email ? getEmailValidationError(email) : '';
+    if (emailValidationError) {
+      return res.status(400).json({ message: emailValidationError });
     }
     if (mobile && !MOBILE_PATTERN.test(mobile)) {
       return res.status(400).json({ message: 'Mobile number must include +91 and 10 digits' });
@@ -214,8 +215,9 @@ router.post('/login', async (req, res) => {
     if ((!email && !mobile) || (email && !password)) {
       return res.status(400).json({ message: 'Email or mobile is required; email login also requires a password' });
     }
-    if (email && !EMAIL_PATTERN.test(email)) {
-      return res.status(400).json({ message: 'Enter a valid email address with an extension' });
+    const emailValidationError = email ? getEmailValidationError(email) : '';
+    if (emailValidationError) {
+      return res.status(400).json({ message: emailValidationError });
     }
     if (mobile && !MOBILE_PATTERN.test(mobile)) {
       return res.status(400).json({ message: 'Mobile number must include +91 and 10 digits' });

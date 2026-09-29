@@ -3,8 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import Navbar from '../Components/Navbar';
 import { API_BASE_URL } from '../api';
-
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/;
+import getEmailValidationError from '../utils/emailValidation';
 
 function Signup() {
   const dispatch = useDispatch();
@@ -24,8 +23,9 @@ function Signup() {
     const mobile = form.mobile.trim();
     setError('');
 
-    if (registrationMethod === 'email' && !EMAIL_PATTERN.test(email)) {
-      setError('Enter a valid email address with an extension.');
+    const emailValidationError = registrationMethod === 'email' ? getEmailValidationError(email) : '';
+    if (emailValidationError) {
+      setError(emailValidationError);
       return;
     }
     if (registrationMethod === 'mobile' && !/^\d{10}$/.test(mobile)) {

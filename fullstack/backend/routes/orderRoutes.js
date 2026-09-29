@@ -6,9 +6,9 @@ const authMiddleware = require('../middleware/authMiddleware');
 const adminMiddleware = require('../middleware/adminMiddleware');
 const crypto = require('crypto');
 const Razorpay = require('razorpay');
+const { getEmailValidationError } = require('../utils/emailValidation');
 
 const router = express.Router();
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/;
 const MOBILE_PATTERN = /^\+91\d{10}$/;
 
 const getRazorpayClient = () => {
@@ -363,8 +363,9 @@ router.post('/checkout', authMiddleware, async (req, res) => {
       }
     }
 
-    if (!EMAIL_PATTERN.test(String(shippingAddress.email || '').trim())) {
-      return res.status(400).json({ message: 'Enter a valid email address with an extension' });
+    const emailValidationError = getEmailValidationError(shippingAddress.email);
+    if (emailValidationError) {
+      return res.status(400).json({ message: emailValidationError });
     }
     if (!MOBILE_PATTERN.test(String(shippingAddress.mobile || '').trim())) {
       return res.status(400).json({ message: 'Mobile number must include +91 and 10 digits' });
